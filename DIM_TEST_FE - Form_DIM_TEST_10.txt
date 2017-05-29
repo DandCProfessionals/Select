@@ -24,6 +24,8 @@ Dim VarReset As Variant
 Dim PosPointer
 Dim dbs As DAO.Database
 Dim FE
+Dim importCSV
+Dim csvTestSystem
 
 Dim Catch As Long, Catch2 As Long, Catch3 As Long, Catch4 As Long, Catch5 As Long, Catch6 As Long, Catch7 As Long, Catch8 As Long, Catch9 As Long, Catch10 As Long
 Dim nCatch As Long, nCatch2 As Long, nCatch3 As Long, nCatch4 As Long, nCatch5 As Long, nCatch6 As Long, nCatch7 As Long, nCatch8 As Long, nCatch9 As Long, nCatch10 As Long
@@ -4105,63 +4107,113 @@ SV07Tot = 0
 SV08Tot = 0
 SV09Tot = 0
 SV10Tot = 0
+importCSV = ""
+Form_DIM_TEST_10.hiddenCSVFileLocation = ""
+Form_DIM_TEST_10.HiddenCSVTestSystem = ""
+Form_DIM_TEST_10.hiddenCSVSaveLocation = ""
 
 TestSampleNo = 1
 TestSampleColumn = 1
 
-Set FE = CreateObject("Scripting.FileSystemObject")
+'Get all import file locations
+Dim fileLocations As Variant
+fileLocations = QueryToArray("select ImpFileLoc,TestSystem,SaveFileLoc from ImpFileLocTbl")
 
-If FE.FileExists("C:\ShadowGage\Data\DB.CSV") = True Then
+'Make sure a list of file locations came back.
+If isArrayEmpty(fileLocations) = False Then
+    Set FE = CreateObject("Scripting.FileSystemObject")
+    
+    'Find out which CSV file will be picked up
+    For j = LBound(fileLocations) To UBound(fileLocations) - 1
+        csvfile = fileLocations(j, 0)
+    csvTestSystem = fileLocations(j, 1)
+    csvSaveFileLocation = fileLocations(j, 2)
+    
+    If FE.FileExists(csvfile) And importCSV = "" Then
+        importCSV = csvfile
+        Form_DIM_TEST_10.hiddenCSVFileLocation = importCSV
+        Form_DIM_TEST_10.HiddenCSVTestSystem = csvTestSystem
+        Form_DIM_TEST_10.hiddenCSVSaveLocation = csvSaveFileLocation
+    
+    ElseIf FE.FileExists(csvfile) And importCSV <> "" Then
+        MsgBox "There is a CSV file in in multiple directories."
+            Exit Sub
+    End If
 
-Open "C:\ShadowGage\Data\DB.CSV" For Input As #1
+    Next
+ 
+'If we don't have a file an import CSV file we need to exit.
+     If importCSV = "" Then
+    MsgBox "No CSV file found"
+    Exit Sub
+     End If
+ 
+Else
+     MsgBox "Unable to obtain list of CSV directories. Please have an administrator look at this issue."
+     Exit Sub
+End If
+
+'If this is an Inspec file replace spaces ,,,, with -999
+If importCSV <> "" Then
+    csvTestSystem = Form_DIM_TEST_10.HiddenCSVTestSystem
+    
+    If csvTestSystem = "Inspec" Then
+        If TextFile_FindReplace(importCSV, ",,,,", ",-999,-999,-999,-999") = False Then
+            MsgBox "There was a problem manipulating Inspec file."
+        Exit Sub
+        End If
+    End If
+End If
+
+Open importCSV For Input As #1
 Do While Not EOF(1)                         ' Loop until end of file.
 
-If (TestSampleColumn = 1) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 1) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp1
 Form_DIM_TEST_10.T1HI.Value = SV01Max
 Form_DIM_TEST_10.T1LOW.Value = SV01Min
 End If
-If (TestSampleColumn = 2) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 2) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp2
 Form_DIM_TEST_10.T2HI.Value = SV02Max
 Form_DIM_TEST_10.T2LOW.Value = SV02Min
 End If
-If (TestSampleColumn = 3) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 3) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp3
 Form_DIM_TEST_10.T3HI.Value = SV03Max
 Form_DIM_TEST_10.T3LOW.Value = SV03Min
 End If
-If (TestSampleColumn = 4) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 4) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp4
 Form_DIM_TEST_10.T4HI.Value = SV04Max
 Form_DIM_TEST_10.T4LOW.Value = SV04Min
 End If
-If (TestSampleColumn = 5) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 5) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp5
 Form_DIM_TEST_10.T5HI.Value = SV05Max
 Form_DIM_TEST_10.T5LOW.Value = SV05Min
 End If
-If (TestSampleColumn = 6) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 6) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp6
 Form_DIM_TEST_10.T6HI.Value = SV06Max
 Form_DIM_TEST_10.T6LOW.Value = SV06Min
 End If
-If (TestSampleColumn = 7) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 7) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp7
 Form_DIM_TEST_10.T7HI.Value = SV07Max
 Form_DIM_TEST_10.T7LOW.Value = SV07Min
 End If
-If (TestSampleColumn = 8) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 8) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp8
 Form_DIM_TEST_10.T8HI.Value = SV08Max
 Form_DIM_TEST_10.T8LOW.Value = SV08Min
 End If
-If (TestSampleColumn = 9) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 9) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp9
 Form_DIM_TEST_10.T9HI.Value = SV09Max
 Form_DIM_TEST_10.T9LOW.Value = SV09Min
 End If
-If (TestSampleColumn = 10) And (TestSampleColumn <= TestColumn) Then
+If (TestSampleColumn = 10) And (TestSampleColumn <= TestColumn) And Not EOF(1) Then
 Call TestSamp10
 Form_DIM_TEST_10.T10HI.Value = SV10Max
 Form_DIM_TEST_10.T10LOW.Value = SV10Min
@@ -4220,7 +4272,6 @@ End If
         Form_DIM_TEST_10.btnSave.SetFocus
         Form_DIM_TEST_10.btnReadFile.Visible = False
 
-End If
     
 Close #1    ' Close file.
 
@@ -4387,7 +4438,7 @@ If TestSampleColumn <= TestColumn Then
 
     TrimedData = Val(Trim(RawStringData))
         
-    If (TestSampleNo = 1) And (TrimedData <= 0) Then
+    If ((TestSampleNo = 1) And (TrimedData = 0) And Not EOF(1)) Or (csvTestSystem = "Inspec" And Not EOF(1)) Then
         Input #1, RawStringData                 ' Read data into variable.
         TrimedData = Val(Trim(RawStringData))
     End If
@@ -4865,7 +4916,8 @@ Dim TotHi
 Dim totLw
 Dim TotAv
 Dim NT As String
-
+Dim TestSystem As String
+TestSystem = Form_DIM_TEST_10.HiddenCSVTestSystem
 'Start mouse hourglass
 Screen.MousePointer = 11
 
@@ -5121,6 +5173,8 @@ TestNo = (DLookup("[TN]", "TDHL Query", "") + 1)
 
 dbs.Execute "INSERT INTO TestData_Count " & "(TestNo) VALUES " & "('" & TestNo & "');"
 dbs.Execute "INSERT INTO TestData_Header_Print " & "(TestNo, TestDate, MoldDate, MOLD_NO, PartNo, ResinNo, ResinLotNo, Machine_No, TestName, TD1, Tx1, Tn1, TD2, Tx2, Tn2, TD3, Tx3, Tn3, TD4, Tx4, Tn4, TD5, Tx5, Tn5, TD6, Tx6, Tn6, TD7, Tx7, Tn7, TD8, Tx8, Tn8, TD9, Tx9, Tn9, EmployeeID, EmployeeName, TestAR, TestA, TestR,[Note]) VALUES " & "('" & TestNo & "','" & td & "', '" & MD & "', '" & MDN & "', '" & PN & "', '" & RN & "', '" & RLN & "', '" & MN & "', '" & TN & "', '" & LT1 & "', '" & Ma1 & "', '" & Mi1 & "', '" & LT2 & "', '" & Ma2 & "', '" & Mi2 & "', '" & LT3 & "', '" & Ma3 & "', '" & Mi3 & "', '" & LT4 & "', '" & Ma4 & "', '" & Mi4 & "', '" & LT5 & "', '" & Ma5 & "', '" & Mi5 & "', '" & LT6 & "', '" & Ma6 & "', '" & Mi6 & "', '" & LT7 & "', '" & Ma7 & "', '" & Mi7 & "', '" & LT8 & "', '" & Ma8 & "', '" & Mi8 & "', '" & LT9 & "', '" & Ma9 & "', '" & Mi9 & "', '" & EI & "', '" & en & "', '" & TAR & "', '" & TA & "', '" & TR & "', '" & NT & "');"
+'We'll uncomment this to insert test system when Cilla gets back from vacation.
+'dbs.Execute "INSERT INTO TestData_Header_Print " & "(TestNo, TestDate, MoldDate, MOLD_NO, PartNo, ResinNo, ResinLotNo, Machine_No, TestName, TD1, Tx1, Tn1, TD2, Tx2, Tn2, TD3, Tx3, Tn3, TD4, Tx4, Tn4, TD5, Tx5, Tn5, TD6, Tx6, Tn6, TD7, Tx7, Tn7, TD8, Tx8, Tn8, TD9, Tx9, Tn9, EmployeeID, EmployeeName, TestAR, TestA, TestR,[Note],TestSystem) VALUES " & "('" & TestNo & "','" & td & "', '" & MD & "', '" & MDN & "', '" & PN & "', '" & RN & "', '" & RLN & "', '" & MN & "', '" & TN & "', '" & LT1 & "', '" & Ma1 & "', '" & Mi1 & "', '" & LT2 & "', '" & Ma2 & "', '" & Mi2 & "', '" & LT3 & "', '" & Ma3 & "', '" & Mi3 & "', '" & LT4 & "', '" & Ma4 & "', '" & Mi4 & "', '" & LT5 & "', '" & Ma5 & "', '" & Mi5 & "', '" & LT6 & "', '" & Ma6 & "', '" & Mi6 & "', '" & LT7 & "', '" & Ma7 & "', '" & Mi7 & "', '" & LT8 & "', '" & Ma8 & "', '" & Mi8 & "', '" & LT9 & "', '" & Ma9 & "', '" & Mi9 & "', '" & EI & "', '" & en & "', '" & TAR & "', '" & TA & "', '" & TR & "', '" & NT & "', '" & TestSystem & "');"
 
 ''" & LT10 & "', '" & Ma10 & "', '" & Mi10 & "',  Had to remove 10 out of space to add note - not using 10  -  , TD10, Tx10, Tn10
 For PosPointer = 1 To 140
@@ -5218,8 +5272,8 @@ End If
 
 If .[DE] = 0 Then
 
-    GCSVLoc = IIf(IsNull(DLookup("[ImpFileLoc]", "ImpFileLocTbl", "[Code] = 'CSV'")), "XXX", DLookup("[ImpFileLoc]", "ImpFileLocTbl", "[Code] = 'CSV'"))
-    GSavLoc = IIf(IsNull(DLookup("[ImpFileLoc]", "ImpFileLocTbl", "[Code] = 'Save'")), "XXX", DLookup("[ImpFileLoc]", "ImpFileLocTbl", "[Code] = 'Save'")) & "DBM_" & TestNo & "_" & Format(Date, "yymmdd") & "_" & Format(Time(), "hhnnss") & ".CSV"
+    GCSVLoc = Form_DIM_TEST_10.hiddenCSVFileLocation.Value
+    GSavLoc = Form_DIM_TEST_10.hiddenCSVSaveLocation.Value & "DBM_" & TestNo & "_" & Format(Date, "yymmdd") & "_" & Format(Time(), "hhnnss") & ".CSV"
 
     If GCSVLoc = "XXX" Or GSavLoc = "XXX" Then
         MsgBox "You do not have a location to save the DB.CSV file to. One or more of your locations are missing.", , "Stop!"
@@ -5228,7 +5282,7 @@ If .[DE] = 0 Then
     End If
 
     If GCSVLoc = "XXX" Then
-        Kill ("C:\ShadowGage\Data\DB.CSV")
+        Kill (importCSV)
     Else
         Kill GCSVLoc
     End If
